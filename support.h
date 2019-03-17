@@ -24,6 +24,7 @@ void verify(unsigned int* input, unsigned int* bins, unsigned int num_elements, 
 void startTime(Timer* timer);
 void stopTime(Timer* timer);
 float elapsedTime(Timer timer);
+void printCharArray(char* arr, unsigned int n);
 
 #ifdef __cplusplus
 }

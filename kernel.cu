@@ -9,67 +9,53 @@
 // Define your kernels in this file you may use more than one kernel if you
 // need to
 #define BLOCK_SIZE 512
-#define NUM_BINS 37
+#define NUM_BINS 40
 #define SPACE_INDEX 36
+#define PERIOD_INDEX 37
+#define COMMA_INDEX 38
+#define NEW_LINE 39
 // INSERT KERNEL(S) HERE
 
-__global__ void fillBins(unsigned char* input, unsigned int* bins, unsigned int num_elements)
+/*
+ * This function calculates the frequency of each character in the character buffer. It does so by creating local
+ * histograms and finally merging them with global histogram.
+ */
+__global__ void calculateFrequency(char* input, unsigned int* bins, unsigned int num_elements)
 {
     
    __shared__ unsigned int private_histogram[NUM_BINS];
-
-    //Initializing private histogram bins
-//    int bin_stride = 0;
-
-//    while((threadIdx.x + bin_stride) < num_bins) {
-//	private_histogram[threadIdx.x + bin_stride] = 0;
-//	bin_stride += blockDim.x;
-//    }
-//    __syncthreads();
 
     //Computation of private histogram
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
 
- if (i < NUM_BINS)
-	{
-	 private_histogram[i] = 0;
+    if (threadIdx.x < NUM_BINS) {
+	private_histogram[threadIdx.x] = 0;
+    }
+    __syncthreads();
+    
+    while(i < num_elements) {
+        if(input[i] >= 97 && input[i] <= 122) { //if the character is small alphabet from a to z
+	    atomicAdd(&private_histogram[input[i]-97], 1);
+        } else if(input[i] >= 48 && input[i] <= 57) { //if the character is a digit from 0 to 9
+	    atomicAdd(&private_histogram[input[i]-22], 1);
+        } else if(input[i] == 32) { //if the character is a space
+	    atomicAdd(&private_histogram[SPACE_INDEX], 1);
+        } else if(input[i] == 46) { //if the character is a fullstop 
+	    atomicAdd(&private_histogram[PERIOD_INDEX], 1);
+	} else if(input[i] == 44) { //if the character is a comma
+	    atomicAdd(&private_histogram[COMMA_INDEX], 1);
+	} else if(input[i] == 10) { //if the character is a new line character
+	    atomicAdd(&private_histogram[NEW_LINE], 1);
 	}
-__syncthreads():
-
- /*   while(i < num_elements) {
-     	atomicAdd(&private_histogram[input[i]], 1);
-	i += stride;
+        i += stride;
     }
-    __syncthreads();*/
-while(i < num_elements) {
-if(input[i] >= 65 && input[i] <= 122)
-{
-	 atomicAdd(&private_histogram[input[i]-97], 1);
-}
-else if (input[i] >= 48 && input[i] <= 57)
-{
-	 atomicAdd(&private_histogram[input[i]-22], 1);
-}
-else if (input[i] == 32)
-{
-	 atomicAdd(&private_histogram[SPACE_INDEX], 1);
-}
-i += stride;
-}
-__syncthreads():
-    //Merging private history bins with global history bins
- /*   bin_stride = 0;
-    while((threadIdx.x + bin_stride) < num_bins) {
-        atomicAdd(&bins[threadIdx.x + bin_stride], private_histogram[threadIdx.x + bin_stride]);
-        bin_stride += blockDim.x;
+    __syncthreads();
+	
+    if (threadIdx.x < NUM_BINS) {
+      	 atomicAdd(&bins[threadIdx.x], private_histogram[threadIdx.x]);
     }
-    __syncthreads();*/
-	if (i < NUM_BINS)
-        {
-         	 atomicAdd(&bins[i], private_histogram[i]);
-        }
-	 __syncthreads();
+    __syncthreads();
 }
 
 
@@ -80,10 +66,10 @@ __syncthreads():
 Setup and invoke your kernel(s) in this function. You may also allocate more
 GPU memory if you need to
 *******************************************************************************/
-void histogram(unsigned char* input, unsigned int* bins, unsigned int num_elements) 
+void histogram(char* input, unsigned int* bins, unsigned int num_elements) 
 {
     // INSERT CODE HERE
     dim3 dimGrid((num_elements - 1)/BLOCK_SIZE + 1, 1, 1);
     dim3 dimBlock(BLOCK_SIZE, 1, 1);
-    fillBins<<<dimGrid, dimBlock>>>(input, bins, num_elements);
+    calculateFrequency<<<dimGrid, dimBlock>>>(input, bins, num_elements);
 }

@@ -67,3 +67,8 @@ float elapsedTime(Timer timer) {
                 + (timer.endTime.tv_usec - timer.startTime.tv_usec)/1.0e6));
 }
 
+void printCharArray(char* arr, unsigned int n) {
+    for(int i = 0; i < n; i++) {
+	printf("%c\n", arr[i]);
+    }
+}
