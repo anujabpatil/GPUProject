@@ -6,7 +6,7 @@
 }*/
 
 
-__global__ void lz77kernel(unsigned char *in_d, char *out_d, int search_buffer_size, int uncoded_buffer_size) 
+__global__ void lz77kernel(char *in_d, char *out_d, int search_buffer_size, int uncoded_buffer_size) 
 {
 	int maximum = 0;
         int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -22,7 +22,9 @@ __global__ void lz77kernel(unsigned char *in_d, char *out_d, int search_buffer_s
 	__shared__ char data[BLOCK_SIZE];
 
 	data[threadIdx.x] = in_d[i];
-	
+
+if( threadIdx.x < 499)
+{
 	int search_buffer_first = threadIdx.x;
         int uncoded_first = threadIdx.x + search_buffer_size;
 
@@ -68,4 +70,5 @@ __global__ void lz77kernel(unsigned char *in_d, char *out_d, int search_buffer_s
 	 	out_d[i + i] = offset;
                 out_d[i + i + 1] = length;
 	}
+}
 }
