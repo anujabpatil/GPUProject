@@ -8,13 +8,14 @@
 
 __global__ void lz77kernel(char *in_d, char *out_d, int search_buffer_size, int uncoded_buffer_size) 
 {
-	int maximum = 0;
+//	int maximum = 0;
         int i = threadIdx.x + blockIdx.x * blockDim.x;
 
 	int k;
 	int j;
-	int length;
-	int offset;
+//	int l;
+	char length;
+	char offset;
 	 //int maximum;
 
 //	int total_size = search_buffer_size + uncoded_buffer_size;
@@ -22,8 +23,10 @@ __global__ void lz77kernel(char *in_d, char *out_d, int search_buffer_size, int 
 	__shared__ char data[BLOCK_SIZE];
 
 	data[threadIdx.x] = in_d[i];
+	
+	__syncthreads();
 
-if( threadIdx.x < 499)
+if(threadIdx.x < 499)
 {
 	int search_buffer_first = threadIdx.x;
         int uncoded_first = threadIdx.x + search_buffer_size;
@@ -32,10 +35,11 @@ if( threadIdx.x < 499)
 	{
 		if( data[j] == data[uncoded_first])
 		{
-			for(k = (uncoded_first + 1); k <= uncoded_buffer_size; k++)
+			 int last_searchbuffer_match = j;
+			for(k = (uncoded_first + 1); k < (uncoded_first + uncoded_buffer_size) ; k++)
 			{	
-				int last_searchbuffer_match = j;		
-				if(data[k] == data[j + 1])
+			//	int last_searchbuffer_match = j;		
+				if(data[k] == data[last_searchbuffer_match + 1])
 				{
 					length++;
 					last_searchbuffer_match++;
@@ -49,7 +53,7 @@ if( threadIdx.x < 499)
 		}
 		if (length >= 3)
 		{	
-			offset = ( k - j);	
+			offset = (uncoded_first - j);	
 			break;
 			
 		}
@@ -59,16 +63,20 @@ if( threadIdx.x < 499)
 		}
 	
 	}
-
+ 
 	if ( length == 0)
 	{
-		out_d[i + i] = 1;
+	//	char a = 'A';
+		int x = 1;
+		out_d[i+i] = x + '0';
 		out_d[i + i + 1] = data[uncoded_first];
 	}
 	else
 	{
-	 	out_d[i + i] = offset;
-                out_d[i + i + 1] = length;
+		char a = offset + '0' ; 
+		char b = length + '0';
+		out_d[i+i] = a;
+          	out_d[i + i + 1] = b;
 	}
 }
 }

@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     inFile.read(h_input, num_elements);
     inFile.close();
 
-    char* h_output = new char[2 * num_elements];
+    char* h_output = new char[2 * 499];
 
     printf("Allocating device variables...\n");
     char* d_input;
@@ -47,14 +47,14 @@ int main(int argc, char** argv) {
  //   unsigned int* d_bins;
     cudaError_t cuda_ret = cudaMalloc((void**)&d_input, num_elements * sizeof(char));
     if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for character buffer\n");
-    cudaMalloc((void**)&d_output, 2 * num_elements * sizeof(unsigned int));
+    cudaMalloc((void**)&d_output,2 * 499 * sizeof(unsigned int));
   // if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for d_bins\n");
 
     printf("Copying host variables to device...\n");
     cuda_ret = cudaMemcpy(d_input, h_input, num_elements * sizeof(char), cudaMemcpyHostToDevice);
     //printCharArray(h_input, num_elements);
     if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to device\n");
-    cuda_ret = cudaMemset(d_output, 0, 2 * num_elements * sizeof(unsigned int));
+    cuda_ret = cudaMemset(d_output, 0, 2 * 499 * sizeof(unsigned int));
     if(cuda_ret != cudaSuccess) FATAL("Unable to set device memory\n");
 
     cudaDeviceSynchronize();
@@ -71,14 +71,28 @@ int main(int argc, char** argv) {
     if(cuda_ret != cudaSuccess) FATAL("Unable to launch/execute kernel\n");
 
     printf("Copying device variables to host...\n");
-    cuda_ret = cudaMemcpy(h_output, d_output, 2 * num_elements * sizeof(int), cudaMemcpyDeviceToHost);
+    cuda_ret = cudaMemcpy(h_output, d_output,2 * 499 * sizeof(int), cudaMemcpyDeviceToHost);
     if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to host\n");
     cudaDeviceSynchronize();
-
-for (int n=0; n<2 * num_elements; ++n)
+ int n ;
+for ( n=0; n < (2 * 499 ); ++n)
     cout << h_output[n] << ' ';
+    cout << n;
     cout << '\n';
-    
+   int count = 0;
+ 	int r ;
+for ( r = 0; r < (2* 499); r = r + 2); 
+{
+//	count++;
+	if ( h_output[r] == 1)
+	{
+	count++;		
+	}
+	
+// 	count++;
+}
+printf("count = %d\n",count);
+ 
    printf("Freeing memory...\n");
     delete[] h_input, h_output;
     cudaFree(d_input);
