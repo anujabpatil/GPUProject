@@ -87,8 +87,26 @@ int main(int argc, char** argv) {
     char** characterCodes = new char*[NUM_BINS];
     for(int i = 0; i < NUM_BINS; i++) {
        char* code = (char*) codeArr[i].c_str();
-    }   
+    }  
+
+    printf("Launching the kernel to copy input and character array to devide...\n");    
+    cuda_ret = cudaMalloc((void**)&d_input, num_elements * sizeof(char));
+    if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for input\n");
     
+    printf("Copying input to device...\n");
+    cuda_ret = cudaMemcpy(d_input, h_input, num_elements * sizeof(char), cudaMemcpyHostToDevice);
+    if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to device\n");
+
+    char* char_input;   
+ 
+    cuda_ret = cudaMalloc((void***)&char_input, NUM_BINS * sizeof(char*));
+    if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for input\n");
+
+    printf("Copying character array to device...\n");
+    cuda_ret = cudaMemcpy(char_input, characterCodes, NUM_BINS * sizeof(char*), cudaMemcpyHostToDevice);
+    if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to device\n");
+
+
     printf("Freeing memory...\n");
     delete[] h_input, h_bins;
     cudaFree(d_input);
