@@ -80,8 +80,15 @@ int main(int argc, char** argv) {
 	cout << "Code for " << i << ": " << codeArr[i] << endl; 
     }*/
 
+    //Find maximum length of codes
     int maxLength = getMaxCodeLength(codeArr);
- 
+
+    //Convert string* to char**
+    char** characterCodes = new char*[NUM_BINS];
+    for(int i = 0; i < NUM_BINS; i++) {
+       char* code = (char*) codeArr[i].c_str();
+    }   
+    
     printf("Freeing memory...\n");
     delete[] h_input, h_bins;
     cudaFree(d_input);
