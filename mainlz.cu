@@ -81,15 +81,16 @@ for ( n=0; n < (2 * 499 ); ++n)
     cout << '\n';
    int count = 0;
  	int r ;
-for ( r = 0; r < (2* 499); r = r + 2); 
+for ( r = 0; r < (2* 499); r = r + 2)
 {
 //	count++;
-	if ( h_output[r] == 1)
+//	printf("count = %c\n",h_output[r]);
+	if ( h_output[r] != '1')
 	{
-	count++;		
+		int x = h_output[ r + 1] - '0';
+		r = 2*(x-1) + r;
 	}
-	
-// 	count++;
+	count++;
 }
 printf("count = %d\n",count);
  
