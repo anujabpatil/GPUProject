@@ -36,10 +36,10 @@ if(threadIdx.x < 499)
 		if( data[j] == data[uncoded_first])
 		{
 			 int last_searchbuffer_match = j;
-			for(k = (uncoded_first + 1); k < (uncoded_first + uncoded_buffer_size) ; k++)
+			for(k = (uncoded_first); k < (uncoded_first + uncoded_buffer_size) ; k++)
 			{	
 			//	int last_searchbuffer_match = j;		
-				if(data[k] == data[last_searchbuffer_match + 1])
+				if(data[k] == data[last_searchbuffer_match])
 				{
 					length++;
 					last_searchbuffer_match++;
