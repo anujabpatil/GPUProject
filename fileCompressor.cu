@@ -4,6 +4,8 @@
 #include <fstream>
 #include "support.h"
 #include "kernel.cu"
+#include "huffmanNode.h"
+#include "huffmanUtil.h"
 
 //extern const int NUM_BINS;
 
@@ -67,9 +69,22 @@ int main(int argc, char** argv) {
  	else if(i == 38) printf(", frequency is %d \n", h_bins[i]);
 	else if(i == 39) printf("\\n frequency is %d \n", h_bins[i]);
     }*/
+
+    //Build encoding tree
+    HuffmanNode* encodingTree = buildEncodingTree(h_bins);
+
+    //Build encoding array
+    string* codeArr = buildEncodingArray(encodingTree);
+
+    /*for(int i = 0; i < NUM_BINS; i++) {
+	cout << "Code for " << i << ": " << codeArr[i] << endl; 
+    }*/
+
+    int maxLength = getMaxCodeLength(codeArr);
  
     printf("Freeing memory...\n");
     delete[] h_input, h_bins;
     cudaFree(d_input);
     cudaFree(d_bins);
 }
+

@@ -1,6 +1,5 @@
 #include <cctype>
 #include "huffmanNode.h"
-#include "huffmanUtil.h"
 
 static void printHuffmanNode(ostream& out, const HuffmanNode& node, bool showAddress = false);
 
@@ -9,6 +8,28 @@ HuffmanNode::HuffmanNode(int character, int count, HuffmanNode* zero, HuffmanNod
     this->count = count;
     this->zero = zero;
     this->one = one;
+}
+
+//Copy constructor
+HuffmanNode::HuffmanNode(const HuffmanNode& other):zero(NULL), one(NULL), character(other.character), count(other.count) {
+    if(other.zero != NULL) {
+	zero = new HuffmanNode(*other.zero);
+    }
+    if(other.one != NULL) {
+        one = new HuffmanNode(*other.one);
+    }
+}
+
+//Overloading assignment operator
+HuffmanNode& HuffmanNode::operator=(HuffmanNode& other) {
+    swap(other, *this);
+    return *this;
+}
+
+//Destructor
+HuffmanNode::~HuffmanNode() {
+    delete zero;
+    delete one;
 }
 
 bool HuffmanNode::isLeaf() const {
@@ -45,8 +66,8 @@ static void printHuffmanNode(ostream& out, const HuffmanNode& node, bool showAdd
     if (node.character == NOT_A_CHAR) {
         out << "NOT, ";
     } else {
-        out << toPrintableChar(node.character)
-            << " (" << node.character << "), ";
+        /*out << toPrintableChar(node.character)
+            << " (" << node.character << "), ";*/
     }
     out << "count=" << node.count;
 

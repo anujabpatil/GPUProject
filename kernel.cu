@@ -8,12 +8,16 @@
 
 // Define your kernels in this file you may use more than one kernel if you
 // need to
+
+#include <cstdio>
+
 #define BLOCK_SIZE 512
 #define NUM_BINS 40
 #define SPACE_INDEX 36
 #define PERIOD_INDEX 37
 #define COMMA_INDEX 38
 #define NEW_LINE 39
+
 // INSERT KERNEL(S) HERE
 
 /*
