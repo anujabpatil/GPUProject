@@ -79,4 +79,9 @@ if(threadIdx.x < 499)
           	out_d[i + i + 1] = b;
 	}
 }
+else
+{
+	 out_d[i+i] = 'A';
+         out_d[i + i + 1] = 'B';
+}
 }
