@@ -93,35 +93,53 @@ int main(int argc, char** argv) {
     for(int i = 0; i < NUM_BINS; i++) {
         char* code = (char*) codeArr[i].c_str();
 	h_characterCodes[i] = code;
-	cout << h_characterCodes[i] << endl;
+	//cout << h_characterCodes[i] << endl;
     }
 
+    cudaFree(d_input);
     printf("Copying input and character codes array to device...\n");    
     
     cuda_ret = cudaMalloc((void**)&d_input, num_elements * sizeof(char));
     if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for input\n");
     cuda_ret = cudaMemcpy(d_input, h_input, num_elements * sizeof(char), cudaMemcpyHostToDevice);
     if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to device\n");
-
+    cudaDeviceSynchronize();
+    
     char** d_characterCodes;
-    cuda_ret = cudaMalloc((void**)&d_characterCodes, NUM_BINS * sizeof(char*));
+    cuda_ret = cudaMalloc((void***)&d_characterCodes, NUM_BINS * sizeof(char*));
     if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for character codes array\n");
     cuda_ret = cudaMemcpy(d_characterCodes, h_characterCodes, NUM_BINS * sizeof(char*), cudaMemcpyHostToDevice);
     if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to device\n");
+    cudaDeviceSynchronize();
 
     int* d_codeLengths;
     cuda_ret = cudaMalloc((void**)&d_codeLengths, NUM_BINS * sizeof(int));
     if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for array of code lengths\n");
     cuda_ret = cudaMemcpy(d_codeLengths, h_codeLengths, NUM_BINS * sizeof(int), cudaMemcpyHostToDevice);
     if(cuda_ret != cudaSuccess) FATAL("Unable to copy memory to device\n");
+    cudaDeviceSynchronize();
 
-    char* h_output, d_output;
-    //h_output = new char[num_elements * maxLength];
+    char *h_output, *d_output;
+    h_output = new char[num_elements * maxLength];
     cuda_ret = cudaMalloc((void**)&d_output, num_elements * maxLength * sizeof(char));
     if(cuda_ret != cudaSuccess) FATAL("Unable to allocate device memory for character output array\n");
 
+    cudaDeviceSynchronize();
+
     printf("Launching the device kernel for enocding input character array..");
     encodeData(d_input, num_elements, d_characterCodes, d_codeLengths, maxLength, d_output);
+
+    cudaDeviceSynchronize();
+    
+    printf("Copying character output array from device to host...");
+    cuda_ret = cudaMemcpy(h_output, d_output, num_elements * maxLength * sizeof(char), cudaMemcpyDeviceToHost);
+    if(cuda_ret != cudaSuccess) FATAL("Unable to copy output character array from device back to host");
+
+    cudaDeviceSynchronize();
+
+    ofstream outfile("example2Out.txt");
+    outfile.write(h_output, num_elements*maxLength);
+    outfile.close();
 
     printf("Freeing memory...\n");
     delete[] h_input, h_bins;
