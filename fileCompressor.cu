@@ -6,6 +6,7 @@
 #include "kernel.cu"
 #include "huffmanNode.h"
 #include "huffmanUtil.h"
+#include <bitset>
 
 //extern const int NUM_BINS;
 
@@ -137,13 +138,43 @@ int main(int argc, char** argv) {
 
     cudaDeviceSynchronize();
 
-    ofstream outfile("example2Out.txt");
-    outfile.write(h_output, num_elements*maxLength);
+    ofstream outfile("outfile.bin", ios::binary);
+
+    //Compression
+    for(int i = 0; i < num_elements * maxLength; i++) {
+        string str = "";
+        int j = 0;
+        while(j < 8 && i < num_elements * maxLength) {
+            if(h_output[i] == '2') {
+                i++;
+                continue;
+            }
+            str = str + h_output[i];
+            i++;
+            j++;
+        }
+        if(j == 8) { //compress it by using bitset
+            bitset<8> binInt(str);
+            unsigned long n = binInt.to_ulong();
+            outfile.write(reinterpret_cast<const char*>(&n), sizeof(n));
+        } else if(i == num_elements * maxLength && j < 8) {
+            while(j < 8) {
+                str = '0' + str;
+                j++;
+            }
+            bitset<8> binInt(str);
+            unsigned long n = binInt.to_ulong();
+            outfile.write(reinterpret_cast<const char*>(&n), sizeof(n));
+        }
+    }
     outfile.close();
 
     printf("Freeing memory...\n");
-    delete[] h_input, h_bins;
+    delete[] h_input, h_bins, h_characterCodes, h_codeLengths, h_output;
     cudaFree(d_input);
     cudaFree(d_bins);
+    cudaFree(d_characterCodes);
+    cudaFree(d_codeLengths);
+    cudaFree(d_output);
 }
 
