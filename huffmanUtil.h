@@ -32,9 +32,9 @@ string readEntireFileText(string filename);
 
 HuffmanNode* buildEncodingTree(const unsigned int* freqArr);
 
-string* buildEncodingArray(HuffmanNode* encodingTree);
+string* buildEncodingArray(HuffmanNode* encodingTree, int* codeLengths);
 
-void traverseTreeForBinaryCode(HuffmanNode* root, const string& code, string* codeArr);
+void traverseTreeForBinaryCode(HuffmanNode* root, const string& code, string* codeArr, int* codeLengths);
 
 int getMaxCodeLength(string* codeArr);
 

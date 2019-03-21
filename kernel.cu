@@ -9,8 +9,6 @@
 // Define your kernels in this file you may use more than one kernel if you
 // need to
 
-#include <cstdio>
-
 #define BLOCK_SIZE 512
 #define NUM_BINS 40
 #define SPACE_INDEX 36
@@ -62,8 +60,56 @@ __global__ void calculateFrequency(char* input, unsigned int* bins, unsigned int
     __syncthreads();
 }
 
+/*
+ * This function reads input character and converts that character into its corresponding string code from the char**
+ * array passed. The code is written to output array with each character code taking as much space as is the length
+ * of the code.
+ */
+__global__ void encodeDataKernel(char* input, unsigned int num_elements, char** characterCodes, int* codeLengths, int maxLength, char* output) {
 
+	//__shared__ char* sharedOutput[outSize];
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	char ch;
+	char* code;
+	int codeLen = 0;
 
+	if(threadIdx.x < num_elements) {
+	    ch = input[threadIdx.x];
+	    if(ch >= 97 && ch <= 122) { //if the character is small alphabet from a to z
+            	code = characterCodes[ch - 97];
+		codeLen = codeLengths[ch - 97];
+            } else if(ch >= 48 && ch <= 57) { //if the character is a digit from 0 to 9
+            	code = characterCodes[ch - 22];
+		codeLen = codeLengths[ch - 22];
+            } else if(ch == 32) { //if the character is a space
+                code = characterCodes[SPACE_INDEX];
+		codeLen = codeLengths[SPACE_INDEX];
+       	    } else if(ch == 46) { //if the character is a fullstop 
+            	code = characterCodes[PERIOD_INDEX];
+		codeLen = codeLengths[PERIOD_INDEX];
+            } else if(ch == 44) { //if the character is a comma
+             	code = characterCodes[COMMA_INDEX];
+		codeLen = codeLengths[COMMA_INDEX];
+            } else if(ch == 10) { //if the character is a new line character
+            	code = characterCodes[NEW_LINE];
+		codeLen = codeLengths[NEW_LINE];
+            }
+	}
+	__syncthreads();
+
+	int j = i * maxLength, k, m;
+	for(m = 0, k = 0; m < maxLength && k < codeLen; j++, k++, m++) {
+	    //sharedOutput[j] = code[k];
+	    output[j] = code[k];
+	}
+	if(k == codeLen && m < maxLength) {
+	    for(; m < maxLength; m++, j++) {
+		//sharedOutput[j] = '2'; //padding with '2'
+		output[j] = '2'; //padding with '2'
+	    }
+	}
+	__syncthreads();
+}
 
 
 /******************************************************************************
@@ -76,4 +122,10 @@ void histogram(char* input, unsigned int* bins, unsigned int num_elements)
     dim3 dimGrid((num_elements - 1)/BLOCK_SIZE + 1, 1, 1);
     dim3 dimBlock(BLOCK_SIZE, 1, 1);
     calculateFrequency<<<dimGrid, dimBlock>>>(input, bins, num_elements);
+}
+
+void encodeData(char* input, unsigned int num_elements, char** characterCodes, int* codeLengths, int maxLength, char* output) {
+    dim3 dimGrid((num_elements - 1)/BLOCK_SIZE + 1, 1, 1);
+    dim3 dimBlock(BLOCK_SIZE, 1, 1);
+    encodeDataKernel<<<dimGrid, dimBlock>>>(input, num_elements, characterCodes, codeLengths, maxLength, output);
 }

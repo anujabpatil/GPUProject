@@ -4,6 +4,7 @@
 #include <queue>
 #include "huffmanNodeComparator.cu"
 #include <fstream>
+#include <cstring>
 
 using namespace std;
 
@@ -71,26 +72,39 @@ HuffmanNode* buildEncodingTree(const unsigned int* freqArr) {
     return minNode;
 }
 
-string* buildEncodingArray(HuffmanNode* encodingTree) {
+string* buildEncodingArray(HuffmanNode* encodingTree, int* codeLengths) {
     string* codeArr = new string[NUM_BINS];
     if(encodingTree != NULL) {
         string code = "";
-        traverseTreeForBinaryCode(encodingTree, code, codeArr);
+        traverseTreeForBinaryCode(encodingTree, code, codeArr, codeLengths);
     }
     return codeArr;
 }
 
-void traverseTreeForBinaryCode(HuffmanNode* root, const string& code, string* codeArr) {
+void traverseTreeForBinaryCode(HuffmanNode* root, const string& code, string* codeArr, int* codeLengths) {
     if(root->isLeaf()) {
-        if(root->character >= 97 && root->character <= 122) codeArr[root->character - 97] = code;
-        else if(root->character >= 48 && root->character <= 57) codeArr[root->character - 22] = code;
-        else if(root->character == 32) codeArr[SPACE_INDEX] = code;
-        else if(root->character == 46) codeArr[PERIOD_INDEX] = code;
-        else if(root->character == 44) codeArr[COMMA_INDEX] = code;
-        else if(root->character == 10) codeArr[NEW_LINE] = code;
+        if(root->character >= 97 && root->character <= 122) {
+	    codeArr[root->character - 97] = code;
+	    codeLengths[root->character - 97] = strlen(code.c_str());
+	} else if(root->character >= 48 && root->character <= 57) {
+	    codeArr[root->character - 22] = code;
+	    codeLengths[root->character - 22] = strlen(code.c_str());
+	} else if(root->character == 32) {
+	    codeArr[SPACE_INDEX] = code;
+	    codeLengths[SPACE_INDEX] = strlen(code.c_str());
+	} else if(root->character == 46) {
+	    codeArr[PERIOD_INDEX] = code;
+	    codeLengths[PERIOD_INDEX] = strlen(code.c_str());
+	} else if(root->character == 44) {
+	    codeArr[COMMA_INDEX] = code;
+	    codeLengths[COMMA_INDEX] = strlen(code.c_str());
+	} else if(root->character == 10) {
+ 	    codeArr[NEW_LINE] = code;
+	    codeLengths[NEW_LINE] = strlen(code.c_str());
+	}
     } else {
-        traverseTreeForBinaryCode(root->zero, code + '0', codeArr);
-        traverseTreeForBinaryCode(root->one, code + '1', codeArr);
+        traverseTreeForBinaryCode(root->zero, code + '0', codeArr, codeLengths);
+        traverseTreeForBinaryCode(root->one, code + '1', codeArr, codeLengths);
     }
 }
 
